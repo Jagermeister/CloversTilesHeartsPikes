@@ -1,5 +1,6 @@
 """ A collection of cards and common utilities acting on them """
 
+from functools import reduce
 from enum import Enum
 import random
 
@@ -38,6 +39,9 @@ class Cards:
         Return:
             int: Container with card added.
         """
+        if hasattr(card_index, '__iter__'):
+            return reduce(Cards.add, card_index, container)
+
         return container | 1 << card_index
 
     @staticmethod
@@ -49,6 +53,9 @@ class Cards:
         Return:
             int: Container with card removed.
         """
+        if hasattr(card_index, '__iter__'):
+            return reduce(Cards.remove, card_index, container)
+
         return container & bit_mask(card_index)
 
     @staticmethod
@@ -72,6 +79,21 @@ class Cards:
 
         return len(bin(container)) - len(bin(container).rstrip('0'))
 
+    @staticmethod
+    def card_choice(container, card_count):
+        """ Randomly return a card from `container`. Remove that card
+            from the container.
+        Args:
+            container: int - The representation of a deck of cards.
+            card_count: int - Number of remaining cards in deck.
+        Returns:
+            int - Container with selected card removed
+            int - Selected card's index
+        """
+        card = Cards.card_peek(container, card_count)
+        return Cards.remove(container, card), card
+
+
 #    @staticmethod
 #    def color(card_index):
 #        return card_index // CARDS_IN_COLOR_COUNT
@@ -86,25 +108,9 @@ class Cards:
 #        return CARDS_IN_COLOR_COUNT * color + value
 
 
-
-    #@staticmethod
-    #def color2(container, card_index):
-    #    return (container >> (card_index * CARDS_IN_COLOR_COUNT)) & ((1 << CARDS_IN_COLOR_COUNT) - 1)
-
 #    @staticmethod
-#    def card_choice(container, card_count):
-#        """ Randomly return a card from `container`. Remove that card
-#            from the container.
-#        Args:
-#            container: int - The representation of a deck of cards.
-#            card_count: int - Number of remaining cards in deck.
-#        Returns:
-#            container: int - Container with selected card removed
-#            card: (card_color, card_value) - Selected card
-#        """
-#        card = Cards.card_peek(container, card_count)
-#        return Cards.remove(container, card), (Cards.color(card), Cards.value(card))
-
+#    def color2(container, card_index):
+#        return (container >> (card_index * CARDS_IN_COLOR_COUNT)) & ((1 << CARDS_IN_COLOR_COUNT) - 1)
 
 
 #class Suit(Enum):
