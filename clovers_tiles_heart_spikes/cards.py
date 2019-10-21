@@ -51,25 +51,6 @@ class Cards:
         """
         return container & bit_mask(card_index)
 
-#    @staticmethod
-#    def color(card_index):
-#        return card_index // CARDS_IN_COLOR_COUNT
-#
-#    @staticmethod
-#    def value(card_index):
-#        return card_index % CARDS_IN_COLOR_COUNT
-
-#    @staticmethod
-#    def to_index(card):
-#        color, value = card
-#        return CARDS_IN_COLOR_COUNT * color + value
-
-
-
-    #@staticmethod
-    #def color2(container, card_index):
-    #    return (container >> (card_index * CARDS_IN_COLOR_COUNT)) & ((1 << CARDS_IN_COLOR_COUNT) - 1)
-
     @staticmethod
     def card_peek(container, card_count):
         """ Randomly select a card within the container to return.
@@ -90,6 +71,25 @@ class Cards:
             unset_index -= 1
 
         return len(bin(container)) - len(bin(container).rstrip('0'))
+
+#    @staticmethod
+#    def color(card_index):
+#        return card_index // CARDS_IN_COLOR_COUNT
+#
+#    @staticmethod
+#    def value(card_index):
+#        return card_index % CARDS_IN_COLOR_COUNT
+
+#    @staticmethod
+#    def to_index(card):
+#        color, value = card
+#        return CARDS_IN_COLOR_COUNT * color + value
+
+
+
+    #@staticmethod
+    #def color2(container, card_index):
+    #    return (container >> (card_index * CARDS_IN_COLOR_COUNT)) & ((1 << CARDS_IN_COLOR_COUNT) - 1)
 
 #    @staticmethod
 #    def card_choice(container, card_count):

@@ -1,5 +1,7 @@
 """ Testing functionality within ./cards.py """
 
+from functools import reduce
+from operator import __or__
 from unittest import TestCase
 
 from clovers_tiles_heart_spikes.cards import Cards
@@ -52,3 +54,20 @@ class TestCards(TestCase):
         ]
         for hand, card_index, result in hand_card_results:
             self.assertEqual(Cards.remove(hand, card_index), result)
+
+    def test_card_peek_takes_card(self):
+        """ Ensure card is from deck """
+        card_indexes = set([1, 3, 6, 7])
+        cards_picked = set()
+        deck = reduce(Cards.add, card_indexes, 0)
+        self.assertEqual(deck, 202)
+
+        for _ in range(200):
+            card = Cards.card_peek(deck, len(card_indexes))
+            cards_picked.add(card)
+            # Card is from the deck
+            self.assertIn(card, card_indexes)
+            # Card remains in the deck
+            self.assertEqual(deck, 202)
+
+        self.assertSetEqual(card_indexes, cards_picked)
