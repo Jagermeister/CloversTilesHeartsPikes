@@ -22,6 +22,50 @@ def generate_hands_from_deck(deck_card_count, hand_card_count):
     deck = [(0b1 << i, i) for i in range(deck_card_count)]
     return combinations(deck, hand_card_count)
 
+def normalize_hand(hand, suit_counts, suit_sums, suit_max):
+    """ Sort and update suits to reduce duplicates
+        where the only difference is suits. E.g.
+        QcQs 2dTcTs == QdQh 2cTdTh
+        ## 134,459 distinct hands
+    """
+    suit_values = sorted(suit_counts.values(), reverse=True)
+    double_suited = suit_values[0] == suit_values[1] == 2
+    cards = sorted(hand, key=lambda c: (
+        suit_counts[c // CARDS_IN_COLOR_COUNT],
+        suit_sums[c // CARDS_IN_COLOR_COUNT],
+        suit_max[c // CARDS_IN_COLOR_COUNT],
+        c // CARDS_IN_COLOR_COUNT if double_suited and suit_counts[c // CARDS_IN_COLOR_COUNT] else 0,
+        c % CARDS_IN_COLOR_COUNT), reverse=True)
+    suit_count = 0
+    suit_last = cards[0]//CARDS_IN_COLOR_COUNT
+    test = []
+    normalized = []
+    for c in cards:
+        rank = c % CARDS_IN_COLOR_COUNT
+        suit = c // CARDS_IN_COLOR_COUNT
+        if suit_last != suit:
+            suit_count += 1
+
+        if suit_count * CARDS_IN_COLOR_COUNT + rank >= 52: #3c3d2c2d2h
+            raise ValueError('hey')
+
+        test.append(suit_count * CARDS_IN_COLOR_COUNT + rank)
+        normalized.append(0b1 << (suit_count * CARDS_IN_COLOR_COUNT + rank))
+        suit_last = suit
+
+    #print(hand, cards, test)
+
+    return reduce(__or__, normalized), test
+
+def card_display(card_index):
+    values = { 8: 'T', 9: 'J', 10: 'Q',  11: 'K', 12: 'A' }
+    suits = { 0: u'♣', 1: u'♦', 2: u'♥', 3: u'♠'}
+    suits = { 0: u'c', 1: u'd', 2: u'h', 3: u's'}
+    rank = card_index % CARDS_IN_COLOR_COUNT
+    suit = card_index // CARDS_IN_COLOR_COUNT
+    return (str(rank + 2) if rank < 8 else values[rank]) + suits[suit]
+
+
 def generate_cards_from_hands():
     """ Foreach hand, generate metrics for ranking
     Returns:
@@ -31,6 +75,7 @@ def generate_cards_from_hands():
                 [list of card indexes]
             )
     """
+    hands_seen = set()
     hand_ranks = []
     hand_count = 0
     for card_list in generate_hands_from_deck(52, 5):
@@ -41,7 +86,27 @@ def generate_cards_from_hands():
         cards, indexes = zip(*card_list)
         hand = reduce(__or__, cards)
 
-        is_flush = all(indexes[0]//CARDS_IN_COLOR_COUNT == index//CARDS_IN_COLOR_COUNT for index in indexes)
+        card_suits = [index // CARDS_IN_COLOR_COUNT for index in indexes]
+        suit_counts = {i: 0 for i in range(4)}
+        suit_sums = {i: 0 for i in range(4)}
+        suit_max = {i: 0 for i in range(4)}
+        for index in indexes:
+            s = index // CARDS_IN_COLOR_COUNT
+            r = index % CARDS_IN_COLOR_COUNT
+            suit_counts[s] += 1
+            suit_sums[s] += r
+            suit_max[s] = max([r, suit_max[s]])
+
+        hand, test = normalize_hand(indexes, suit_counts, suit_sums, suit_max)
+
+        if hand in hands_seen:
+            continue
+
+        suit_counts = sorted(suit_counts.values(), reverse=True)
+        suit_count = suit_counts[0]
+
+        is_flush = all(card_suits[0] == suit for suit in card_suits)
+
         card_ranks = sorted([index % CARDS_IN_COLOR_COUNT for index in indexes])
         rank_counts = {i: 0 for i in range(CARDS_IN_COLOR_COUNT)}
         for rank in card_ranks:
@@ -75,13 +140,15 @@ def generate_cards_from_hands():
         is_straight = len(set(card_ranks)) == 5 and (
             card_ranks[-1] - card_ranks[0] == 4 or
             card_ranks[-1] - card_ranks[-2] == 9)
-        is_royal_flush = is_straight and is_flush and card_ranks[0] == 0 and card_ranks[-1] == 12
+        is_royal_flush = is_straight and is_flush and card_ranks[0] == 8 and card_ranks[-1] == 12
         is_straight_flush = not is_royal_flush and is_straight and is_flush
-        is_straight = is_straight and not (is_royal_flush or is_straight_flush) 
-        is_flush = is_flush and not (is_royal_flush or is_straight_flush) 
+        is_straight = is_straight and not (is_royal_flush or is_straight_flush)
+        is_flush = is_flush and not (is_royal_flush or is_straight_flush)
 
+        hands_seen.add(hand)
         hand_ranks.append({
             'hand': hand,
+            'display': ''.join([card_display(t) for t in test]),
             'is_royal_flush': 1 if is_royal_flush else 0,
             'is_straight_flush': 1 if is_straight_flush else 0,
             'is_four_aces_w_234': 1 if is_four_aces_w_234 else 0,
@@ -95,6 +162,8 @@ def generate_cards_from_hands():
             'is_three_of_a_kind': 1 if is_three_of_a_kind else 0,
             'is_two_pair': 1 if is_two_pair else 0,
             'is_pair_jacks_or_better': 1 if is_pair_jacks_or_better else 0,
+            'straight_count': 0,
+            'suit_count': suit_count,
             '2': rank_counts[0],
             '3': rank_counts[1],
             '4': rank_counts[2],
