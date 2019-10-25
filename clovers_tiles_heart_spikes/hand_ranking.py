@@ -97,7 +97,8 @@ def generate_cards_from_hands():
             suit_sums[s] += r
             suit_max[s] = max([r, suit_max[s]])
 
-        hand, test = normalize_hand(indexes, suit_counts, suit_sums, suit_max)
+        #hand, test = normalize_hand(indexes, suit_counts, suit_sums, suit_max)
+        test = indexes
 
         if hand in hands_seen:
             continue
@@ -109,9 +110,28 @@ def generate_cards_from_hands():
 
         card_ranks = sorted([index % CARDS_IN_COLOR_COUNT for index in indexes])
         rank_counts = {i: 0 for i in range(CARDS_IN_COLOR_COUNT)}
+        ranks = set()
         for rank in card_ranks:
             rank_counts[rank] += 1
+            ranks.add(rank)
+            if rank == 12:
+                ranks.add(-1)
 
+        ranks = sorted(ranks)
+        straight_count, str8_count = 1, 1
+        last_rank = ranks[0]
+        for rank in ranks:
+            if rank == last_rank:
+                continue
+            elif rank == last_rank + 1:
+                str8_count += 1
+            else:
+                straight_count = max(straight_count, str8_count)
+                str8_count = 1
+
+            last_rank = rank
+
+        straight_count = max(straight_count, str8_count)
         rank_by_count = {}
         for k, v in rank_counts.items():
             rank_by_count[v] = k
@@ -162,7 +182,7 @@ def generate_cards_from_hands():
             'is_three_of_a_kind': 1 if is_three_of_a_kind else 0,
             'is_two_pair': 1 if is_two_pair else 0,
             'is_pair_jacks_or_better': 1 if is_pair_jacks_or_better else 0,
-            'straight_count': 0,
+            'straight_count': straight_count,
             'suit_count': suit_count,
             '2': rank_counts[0],
             '3': rank_counts[1],
