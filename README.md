@@ -45,3 +45,5 @@ current_hand = 0b10101100
 new_hand = current_hand | two_of_clubs
 # 0b10101101
 ```
+
+This keeps constant time operations.
