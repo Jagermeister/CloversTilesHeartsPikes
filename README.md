@@ -2,10 +2,10 @@
 Deck of cards utilities and common entities. Name originates from the original French suit names: trèfles (clovers), carreaux (tiles), cœurs (hearts), and piques (pikes).
 
 ## Video Poker
-Single-draw video poker deals a 5-card hand which players choose to hold any number of cards. The unheld cards will be discarded and new cards will be dealt. This final 5-card hand is scored as a normal poker hand, although some machines have special rules such as deuces being wild. The most important aspect when choosing a strategy is understanding poker hand distributions and the payout structure.
+Single-draw video poker deals a 5-card hand which players choose to hold any number of cards. The unheld cards will be replaced with new cards. This final 5-card hand is scored as a normal poker hand, although some special rules may apply such as deuces being wild. The most important aspect when choosing a strategy is understanding the poker hand distributions and the payout structure.
 
 ### Poker Hand Distribution
-We will look at the game variant "Jack or Better", which means to be paid the hand must be at least as strong as a pair of Jacks. Let's look at all possible poker hands (52 choose 5, aka 2,598,960 combinations).
+Looking at the game variant "Jack or Better", which means to be paid the hand must be at least as strong as a pair of Jacks, we will understand how the payout changes the distribution and therefore strategy. Let's look at all possible poker hands (52 choose 5, aka 2,598,960 combinations).
 
 |Hand|Total Hands| |Payout| |Won|
 |----|----:|----|----:|----|----:|
